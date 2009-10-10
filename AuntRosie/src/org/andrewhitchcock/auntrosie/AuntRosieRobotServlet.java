@@ -1,9 +1,18 @@
 package org.andrewhitchcock.auntrosie;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.URI;
+import java.net.URL;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.json.JSONObject;
+import org.json.JSONTokener;
 
 import com.google.wave.api.AbstractRobot;
 import com.google.wave.api.Annotation;
@@ -68,11 +77,29 @@ public class AuntRosieRobotServlet extends AbstractRobot {
         myDoc.delete();
 		    
 		    for (Annotation a : annotationsToTranslate) {
-		      String translatedText = "\n\nblah!" + doc.getText(a.getRange()) + "blah!";
-    		  myDoc.append(translatedText);
+    		  myDoc.append(translateText(a.getValue(), languageTarget, doc.getText(a.getRange())));
 			  }		    
 		  }
 		}
+	}
+	
+	private String translateText(String from, String to, String text) {
+	  try {
+	    String encoded = URLEncoder.encode(text, "UTF-8");
+	    URL url = new URI("http://ajax.googleapis.com/ajax/services/language/translate?langpair=" + from + "%7C" + to + "&v=1.0&q=" + encoded).toURL();
+	    BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream(), "UTF-8"));
+	    
+	    StringBuilder sb = new StringBuilder();
+	    String line;
+	    while ((line = reader.readLine()) != null) {
+	      sb.append(line);
+	    }
+	    
+	    JSONObject json = new JSONObject(new JSONTokener(sb.toString()));
+	    return json.getJSONObject("responseData").getString("translatedText");
+	  } catch (Exception e) {
+	    return e.toString();
+	  }
 	}
 
 	@Override
