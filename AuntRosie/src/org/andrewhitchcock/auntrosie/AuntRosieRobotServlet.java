@@ -18,6 +18,7 @@ import com.google.wave.api.Annotation;
 import com.google.wave.api.Blip;
 import com.google.wave.api.Event;
 import com.google.wave.api.EventType;
+import com.google.wave.api.Range;
 import com.google.wave.api.RobotMessageBundle;
 import com.google.wave.api.TextView;
 
@@ -25,7 +26,7 @@ public class AuntRosieRobotServlet extends AbstractRobot {
 
 	private static final long serialVersionUID = -1546080376029476133L;
 
-	private static final Pattern translatePattern = Pattern.compile("/translate:([A-Za-z-]{2,5})");
+	private static final String translatePattern = "/translate:";
 	
 	@Override
 	public String getRobotName() {
@@ -45,11 +46,23 @@ public class AuntRosieRobotServlet extends AbstractRobot {
 		    
 		    TextView doc = blip.getDocument();
 		    
-		    Matcher matcher = translatePattern.matcher(doc.getText());
-		    if (!matcher.matches()) {
-		      continue; // nothing to translate
+		    int index = doc.getText().indexOf(translatePattern);
+		    if (index == -1) {
+		      continue;
 		    }
-		    String languageTarget = matcher.group(1);
+		    index += translatePattern.length();
+		    
+		    // I think the following is retarded, but it is too late and I'm too tired to figure out the regex issue now.
+		    String languageTarget = "";
+		    for (int i = index; i < Math.min(index + 5, doc.getText().length()); i++) {
+		      char c = doc.getText().charAt(i);
+		      if (Character.isLetter(c) || c == '-') {
+		        languageTarget += c;
+		      }
+		    }
+		    if (languageTarget.length() < 2) {
+		      continue;
+		    }
 		    
 		    List<Annotation> annotationsToTranslate = new ArrayList<Annotation>();
 		    for (Annotation langAnnotations : doc.getAnnotations("lang")) {
