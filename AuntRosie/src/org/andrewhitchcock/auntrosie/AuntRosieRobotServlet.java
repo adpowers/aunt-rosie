@@ -18,6 +18,8 @@ public class AuntRosieRobotServlet extends AbstractRobot {
 
 	private static final long serialVersionUID = -1546080376029476133L;
 
+	private static final String myAnnotationName = "aunt-rosie";
+	
 	@Override
 	public String getRobotName() {
 		return "Aunt Rosie";
@@ -45,57 +47,54 @@ public class AuntRosieRobotServlet extends AbstractRobot {
 		    location += keyword.length();
 		    String languageTarget = doc.getText(new Range(location, location + 2)).toLowerCase();
 		    
-		    List<Annotation> myAnnotations = doc.getAnnotations("aunt-rosie");
+		    List<Annotation> myAnnotations = doc.getAnnotations(myAnnotationName);
+		    
+        Blip myBlip;
+        List<Blip> blips = blip.getChildren();
+        if (blips.isEmpty()) {
+          myBlip = blip.createChild();
+        } else {
+          myBlip = blips.get(0);
+        }
+		    
+		    TextView myDoc = myBlip.getDocument();
+		    myDoc.delete();
+		    // delete my own annotations        
+		    //doc.deleteAnnotations(myAnnotationName);
+        for (Annotation a : myAnnotations) {
+          myDoc.append(a + "\n");
+          doc.delete(a.getRange());
+        }
 		    
 		    List<Annotation> annotationsToTranslate = new ArrayList<Annotation>();
 		    for (Annotation langAnnotations : doc.getAnnotations("lang")) {
 		      // Don't try to translate a language to itself
-		      if (langAnnotations.getValue().equals(languageTarget)) {
-		        continue;
+		      if (! (langAnnotations.getValue().equals(languageTarget)
+		          || langAnnotations.getValue().equals("unknown"))) {
+		        annotationsToTranslate.add(langAnnotations);
 		      }
-		      
-		      if (langAnnotations.getValue().equals("unknown")) {
-		        continue;
-		      }
-		      
-	        // Don't try to translate text we added (in case language detection fails).
-		      boolean valid = true;
-	        for (Annotation myAnnotation : myAnnotations) {
-	           Range langRange = langAnnotations.getRange();
-	           Range myRange = myAnnotation.getRange();
-	           
-	           if ((langRange.getStart() >= myRange.getStart() && langRange.getStart() <= myRange.getEnd())
-	            || (langRange.getEnd() >= myRange.getStart() && langRange.getEnd() <= myRange.getEnd())
-	            || (langRange.getStart() <= myRange.getStart() && langRange.getEnd() >= myRange.getEnd())) {
-	             valid = false;
-	             break;
-	           }
-	        }
-	        if (valid) {
-	          annotationsToTranslate.add(langAnnotations);
-	        }
 		    }
 		    
-		    Map<Annotation, Annotation> annotationMap = getLangInputToMyAnnotations(annotationsToTranslate, myAnnotations);
-		    List<Annotation> translationsNeedingReply;
-		    List<Annotation> myAnnotationsNeedingDeletion;
 		    
-		    
-		    Blip myBlip;
-		    List<Blip> blips = blip.getChildren();
-		    if (blips.isEmpty()) {
-		      myBlip = blip.createChild();
-		    } else {
-		      myBlip = blips.get(0);
+		    for (Annotation a : annotationsToTranslate) {
+		      String translatedText = "\n\nblah!" + doc.getText(a.getRange()) + "blah!";
+		      int annotationStart = a.getRange().getEnd();
+		      doc.insert(annotationStart, translatedText);
+		      doc.setAnnotation(new Range(annotationStart, annotationStart + translatedText.length()), myAnnotationName, languageTarget);
 		    }
 		    
-		    TextView myDoc = myBlip.getDocument();
-		    myDoc.delete();
+		    
+		    
+		    for (Annotation a : doc.getAnnotations()) {
+		      myDoc.append(a + "\n");
+		    }
+		    
 		    
 		    myDoc.append("Text to translate:\n");
 		    for (Annotation a : annotationsToTranslate) {
 		      myDoc.append("\"" + doc.getText(a.getRange()) + "\"" + "\n\n");
 		    }
+		    
 		  }
 		}
 	}
