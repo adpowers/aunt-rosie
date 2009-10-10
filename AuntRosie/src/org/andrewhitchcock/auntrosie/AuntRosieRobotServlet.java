@@ -4,12 +4,11 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URL;
-import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -27,7 +26,7 @@ public class AuntRosieRobotServlet extends AbstractRobot {
 
 	private static final long serialVersionUID = -1546080376029476133L;
 
-	private static final String myAnnotationName = "aunt-rosie";
+	private static final Pattern translatePattern = Pattern.compile("/translate:([A-Za-z-]{2,5})");
 	
 	@Override
 	public String getRobotName() {
@@ -47,14 +46,11 @@ public class AuntRosieRobotServlet extends AbstractRobot {
 		    
 		    TextView doc = blip.getDocument();
 		    
-		    String keyword = "/translate:";
-		    int location = doc.getText().indexOf(keyword);
-		    if (location == -1) {
+		    Matcher matcher = translatePattern.matcher(doc.getText());
+		    if (!matcher.matches()) {
 		      continue; // nothing to translate
 		    }
-		    
-		    location += keyword.length();
-		    String languageTarget = doc.getText(new Range(location, location + 2)).toLowerCase();
+		    String languageTarget = matcher.group(1);
 		    
 		    List<Annotation> annotationsToTranslate = new ArrayList<Annotation>();
 		    for (Annotation langAnnotations : doc.getAnnotations("lang")) {
@@ -64,7 +60,7 @@ public class AuntRosieRobotServlet extends AbstractRobot {
 		        annotationsToTranslate.add(langAnnotations);
 		      }
 		    }
-	
+
         Blip myBlip;
         List<Blip> blips = blip.getChildren();
         if (blips.isEmpty()) {
@@ -75,10 +71,17 @@ public class AuntRosieRobotServlet extends AbstractRobot {
         
         TextView myDoc = myBlip.getDocument();
         myDoc.delete();
-		    
+        
+        myDoc.append(languageTarget + "\n");
+        myDoc.append(doc.getAnnotations().size() + "\n");
+		    for (Annotation a : doc.getAnnotations()) {
+		      myDoc.append(a + "\n");
+		    }
+		    myDoc.append(doc.getText() + "\n");
 		    for (Annotation a : annotationsToTranslate) {
-    		  myDoc.append(translateText(a.getValue(), languageTarget, doc.getText(a.getRange())));
-			  }		    
+		      String translation = translateText(a.getValue(), languageTarget, doc.getText(a.getRange()));
+    		  myDoc.append("translation: " + translation);
+			  }
 		  }
 		}
 	}
