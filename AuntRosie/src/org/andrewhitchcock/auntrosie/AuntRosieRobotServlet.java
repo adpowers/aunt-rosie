@@ -18,7 +18,6 @@ import com.google.wave.api.Annotation;
 import com.google.wave.api.Blip;
 import com.google.wave.api.Event;
 import com.google.wave.api.EventType;
-import com.google.wave.api.Range;
 import com.google.wave.api.RobotMessageBundle;
 import com.google.wave.api.TextView;
 
@@ -61,12 +60,15 @@ public class AuntRosieRobotServlet extends AbstractRobot {
 		      }
 		    }
 
-        Blip myBlip;
-        List<Blip> blips = blip.getChildren();
-        if (blips.isEmpty()) {
+        Blip myBlip = null;
+        for (Blip child : blip.getChildren()) {
+          if (child.getCreator().equals("aunt-rosie@appspot.com")) {
+            myBlip = child;
+            break;
+          }
+        }
+        if (myBlip == null) {
           myBlip = blip.createChild();
-        } else {
-          myBlip = blips.get(0);
         }
         
         TextView myDoc = myBlip.getDocument();
@@ -80,7 +82,7 @@ public class AuntRosieRobotServlet extends AbstractRobot {
 		    myDoc.append(doc.getText() + "\n");
 		    for (Annotation a : annotationsToTranslate) {
 		      String translation = translateText(a.getValue(), languageTarget, doc.getText(a.getRange()));
-    		  myDoc.append("translation: " + translation);
+    		  myDoc.append(translation);
 			  }
 		  }
 		}
