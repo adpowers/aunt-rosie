@@ -1,5 +1,6 @@
 package org.andrewhitchcock.auntrosie;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.google.wave.api.AbstractRobot;
@@ -40,7 +41,36 @@ public class AuntRosieRobotServlet extends AbstractRobot {
 		    }
 		    
 		    location += keyword.length();
-		    String languageTarget = doc.getText(new Range(location, location + 2));
+		    String languageTarget = doc.getText(new Range(location, location + 2)).toLowerCase();
+		    
+		    List<Annotation> annotationsToTranslate = new ArrayList<Annotation>();
+		    for (Annotation langAnnotations : doc.getAnnotations("lang")) {
+		      // Don't try to translate a language to itself
+		      if (langAnnotations.getValue().equals(languageTarget)) {
+		        continue;
+		      }
+		      
+		      if (langAnnotations.getValue().equals("unknown")) {
+		        continue;
+		      }
+		      
+	        // Don't try to translate text we added (in case language detection fails).
+		      boolean valid = true;
+	        for (Annotation myAnnotations : doc.getAnnotations("aunt-rosie")) {
+	           Range langRange = langAnnotations.getRange();
+	           Range myRange = myAnnotations.getRange();
+	           
+	           if ((langRange.getStart() >= myRange.getStart() && langRange.getStart() <= myRange.getEnd())
+	            || (langRange.getEnd() >= myRange.getStart() && langRange.getEnd() <= myRange.getEnd())) {
+	             valid = false;
+	             break;
+	           }
+	        }
+	        if (valid) {
+	          annotationsToTranslate.add(langAnnotations);
+	        }
+		    }
+		    
 		    
 		    Blip myBlip;
 		    List<Blip> blips = blip.getChildren();
@@ -53,13 +83,10 @@ public class AuntRosieRobotServlet extends AbstractRobot {
 		    TextView myDoc = myBlip.getDocument();
 		    myDoc.delete();
 		    
-		    for (Annotation a : doc.getAnnotations()) {
-		      myDoc.append(a.toString() + "\n");
+		    myDoc.append("Text to translate:\n");
+		    for (Annotation a : annotationsToTranslate) {
+		      myDoc.append("\"" + doc.getText(a.getRange()) + "\"" + "\n\n");
 		    }
-		    myDoc.append("\n");
-		    myDoc.append("languageTarget: " + languageTarget);
-		    myDoc.append("\n");
-		    myDoc.append(doc.getText());
 		  }
 		}
 	}
