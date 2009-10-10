@@ -87,12 +87,12 @@ public class AuntRosieRobotServlet extends AbstractRobot {
         TextView myDoc = myBlip.getDocument();
         myDoc.delete();
         
-        myDoc.append(languageTarget + "\n");
+       /* myDoc.append(languageTarget + "\n");
         myDoc.append(doc.getAnnotations().size() + "\n");
 		    for (Annotation a : doc.getAnnotations()) {
 		      myDoc.append(a + "\n");
 		    }
-		    myDoc.append(doc.getText() + "\n");
+		    myDoc.append(doc.getText() + "\n");*/
 		    for (Annotation a : annotationsToTranslate) {
 		      String translation = translateText(a.getValue(), languageTarget, doc.getText(a.getRange()));
     		  myDoc.append(translation);

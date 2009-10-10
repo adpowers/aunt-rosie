@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <w:robot xmlns:w="http://wave.google.com/extensions/robots/1.0">
+  <w:profile name="Aunt Rosie" imageurl="http://aunt-rosie.appspot.com/avatar.png" />
   <w:capabilities>
     <w:capability name="DOCUMENT_CHANGED" content="true" />
   </w:capabilities>
-  <w:version>1</w:version>
+  <w:version>1a</w:version>
 </w:robot>
