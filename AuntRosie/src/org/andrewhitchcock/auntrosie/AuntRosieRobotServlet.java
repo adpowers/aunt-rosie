@@ -1,7 +1,9 @@
 package org.andrewhitchcock.auntrosie;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.google.wave.api.AbstractRobot;
 import com.google.wave.api.Annotation;
@@ -43,6 +45,8 @@ public class AuntRosieRobotServlet extends AbstractRobot {
 		    location += keyword.length();
 		    String languageTarget = doc.getText(new Range(location, location + 2)).toLowerCase();
 		    
+		    List<Annotation> myAnnotations = doc.getAnnotations("aunt-rosie");
+		    
 		    List<Annotation> annotationsToTranslate = new ArrayList<Annotation>();
 		    for (Annotation langAnnotations : doc.getAnnotations("lang")) {
 		      // Don't try to translate a language to itself
@@ -56,12 +60,13 @@ public class AuntRosieRobotServlet extends AbstractRobot {
 		      
 	        // Don't try to translate text we added (in case language detection fails).
 		      boolean valid = true;
-	        for (Annotation myAnnotations : doc.getAnnotations("aunt-rosie")) {
+	        for (Annotation myAnnotation : myAnnotations) {
 	           Range langRange = langAnnotations.getRange();
-	           Range myRange = myAnnotations.getRange();
+	           Range myRange = myAnnotation.getRange();
 	           
 	           if ((langRange.getStart() >= myRange.getStart() && langRange.getStart() <= myRange.getEnd())
-	            || (langRange.getEnd() >= myRange.getStart() && langRange.getEnd() <= myRange.getEnd())) {
+	            || (langRange.getEnd() >= myRange.getStart() && langRange.getEnd() <= myRange.getEnd())
+	            || (langRange.getStart() <= myRange.getStart() && langRange.getEnd() >= myRange.getEnd())) {
 	             valid = false;
 	             break;
 	           }
@@ -70,6 +75,10 @@ public class AuntRosieRobotServlet extends AbstractRobot {
 	          annotationsToTranslate.add(langAnnotations);
 	        }
 		    }
+		    
+		    Map<Annotation, Annotation> annotationMap = getLangInputToMyAnnotations(annotationsToTranslate, myAnnotations);
+		    List<Annotation> translationsNeedingReply;
+		    List<Annotation> myAnnotationsNeedingDeletion;
 		    
 		    
 		    Blip myBlip;
@@ -89,6 +98,43 @@ public class AuntRosieRobotServlet extends AbstractRobot {
 		    }
 		  }
 		}
+	}
+	
+	private Map<Annotation, Annotation> getLangInputToMyAnnotations(List<Annotation> langAnnotations, List<Annotation> myAnnotations) {
+	  Map<Annotation, Annotation> result = new HashMap<Annotation, Annotation>();
+	  
+	  if (langAnnotations.size() == 0) {
+	    return result;
+	  }
+	  
+	  for (int i = 0; i < langAnnotations.size() - 1; i++) {
+	    int thisStart = langAnnotations.get(i).getRange().getStart();
+	    int nextStart = langAnnotations.get(i+1).getRange().getStart();
+	    
+	    for (Annotation myAnnotation : myAnnotations) {
+	      int myStart = myAnnotation.getRange().getStart();
+	      
+	      if (myStart < thisStart) {
+	        continue;
+	      } else if (myStart > thisStart && myStart < nextStart) {
+	        result.put(langAnnotations.get(i), myAnnotation);
+	      } else {
+	        break;
+	      }
+	    }
+	    
+	    Annotation lastLangAnnotation = langAnnotations.get(langAnnotations.size() - 1);
+	    int lastStart = lastLangAnnotation.getRange().getStart();
+	    
+	    for (Annotation myAnnotation : myAnnotations) {
+	      if (lastStart > myAnnotation.getRange().getStart()) {
+	        result.put(lastLangAnnotation, myAnnotation);
+	        break;
+	      }
+	    }
+	  }
+	  
+	  return result;
 	}
 
 	@Override
