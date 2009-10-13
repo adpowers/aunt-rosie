@@ -7,8 +7,6 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -18,7 +16,6 @@ import com.google.wave.api.Annotation;
 import com.google.wave.api.Blip;
 import com.google.wave.api.Event;
 import com.google.wave.api.EventType;
-import com.google.wave.api.Range;
 import com.google.wave.api.RobotMessageBundle;
 import com.google.wave.api.TextView;
 
@@ -26,6 +23,7 @@ public class AuntRosieRobotServlet extends AbstractRobot {
 
 	private static final long serialVersionUID = -1546080376029476133L;
 
+	private static final String myAddress = "webmaster@appspot.com";
 	private static final String translatePattern = "/translate:";
 	
 	@Override
@@ -40,7 +38,7 @@ public class AuntRosieRobotServlet extends AbstractRobot {
 		    Blip blip = e.getBlip();
 		    
 		    // Skip blips I created.
-		    if (blip.getContributors().contains("aunt-rosie@appspot.com")) {
+		    if (blip.getContributors().contains(myAddress)) {
 		      continue;
 		    }
 		    
@@ -75,7 +73,7 @@ public class AuntRosieRobotServlet extends AbstractRobot {
 
         Blip myBlip = null;
         for (Blip child : blip.getChildren()) {
-          if (child.getCreator().equals("aunt-rosie@appspot.com")) {
+          if (child.getCreator().equals(myAddress)) {
             myBlip = child;
             break;
           }
@@ -87,12 +85,12 @@ public class AuntRosieRobotServlet extends AbstractRobot {
         TextView myDoc = myBlip.getDocument();
         myDoc.delete();
         
-       /* myDoc.append(languageTarget + "\n");
+        myDoc.append(languageTarget + "\n");
         myDoc.append(doc.getAnnotations().size() + "\n");
 		    for (Annotation a : doc.getAnnotations()) {
 		      myDoc.append(a + "\n");
 		    }
-		    myDoc.append(doc.getText() + "\n");*/
+		    myDoc.append(doc.getText() + "\n");
 		    for (Annotation a : annotationsToTranslate) {
 		      String translation = translateText(a.getValue(), languageTarget, doc.getText(a.getRange()));
     		  myDoc.append(translation);
