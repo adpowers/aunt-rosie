@@ -26,6 +26,7 @@
 
   </script>
   <select name="targetLanguage" id="targetLanguage" onchange="onLanguageChange()">
+    <option value="none"></option>
     <option value="af">Afrikaans</option>
     <option value="sq">Albanian</option>
     <option value="ar">Arabic</option>
