@@ -115,7 +115,11 @@ public class AuntRosieRobotServlet extends AbstractRobot {
 	    }
 	    
 	    JSONObject json = new JSONObject(new JSONTokener(sb.toString()));
-	    return json.getJSONObject("responseData").getString("translatedText");
+	    if (json.isNull("responseData")) {
+	      return json.getString("responseDetails");
+	    } else {
+	      return json.getJSONObject("responseData").getString("translatedText");
+	    }
 	  } catch (Exception e) {
 	    return e.toString();
 	  }
