@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<Module>
+<ModulePrefs title="Translate Button" height="25">
+  <Require feature="wave" /> 
+</ModulePrefs>
+<Content type="html">
+<![CDATA[ 
+  <script type="text/javascript">
+
+  var div = document.getElementById('content_div');
+
+  function onLanguageChange() {
+    wave.getState().submitDelta({'lang': document.getElementById('targetLanguage').value});
+  }
+
+  function stateUpdated() {
+    document.getElementById('targetLanguage').value = wave.getState().get('lang');
+  }
+ 
+  function init() {
+    if (wave && wave.isInWaveContainer()) {
+      wave.setStateCallback(stateUpdated);
+    }
+  }
+  gadgets.util.registerOnLoadHandler(init);
+
+  </script>
+  <select name="targetLanguage" id="targetLanguage" onchange="onLanguageChange()">
+    <option value="none"></option>
+    <option value="ja">Japanese</option>
+    <option value="ar">Arabic</option>
+  </select>
+  ]]> 
+  </Content>
+</Module>

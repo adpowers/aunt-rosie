@@ -16,6 +16,8 @@ import com.google.wave.api.Annotation;
 import com.google.wave.api.Blip;
 import com.google.wave.api.Event;
 import com.google.wave.api.EventType;
+import com.google.wave.api.Gadget;
+import com.google.wave.api.Range;
 import com.google.wave.api.RobotMessageBundle;
 import com.google.wave.api.TextView;
 
@@ -24,7 +26,7 @@ public class AuntRosieRobotServlet extends AbstractRobot {
 	private static final long serialVersionUID = -1546080376029476133L;
 
 	private static final String myAddress = "webmaster@appspot.com";
-	private static final String translatePattern = "/translate:";
+	private static final String buttonUrl = "http://webmaster.appspot.com/translate-button.xml";
 	
 	@Override
 	public String getRobotName() {
@@ -38,27 +40,22 @@ public class AuntRosieRobotServlet extends AbstractRobot {
 		    Blip blip = e.getBlip();
 		    
 		    // Skip blips I created.
-		    if (blip.getContributors().contains(myAddress)) {
+		    if (blip.getCreator().equals(myAddress)) {
 		      continue;
 		    }
 		    
 		    TextView doc = blip.getDocument();
 		    
-		    int index = doc.getText().indexOf(translatePattern);
-		    if (index == -1) {
+		    Gadget button = doc.getGadgetView().getGadget(buttonUrl);
+		    if (button == null && !doc.getAnnotations("lang").isEmpty()) {
+		      doc.insert(0, "\n");
+		      doc.insertElement(0, new Gadget(buttonUrl));
+		      doc.insert(0, "\n");
 		      continue;
 		    }
-		    index += translatePattern.length();
 		    
-		    // I think the following is retarded, but it is too late and I'm too tired to figure out the regex issue now.
-		    String languageTarget = "";
-		    for (int i = index; i < Math.min(index + 5, doc.getText().length()); i++) {
-		      char c = doc.getText().charAt(i);
-		      if (Character.isLetter(c) || c == '-') {
-		        languageTarget += c;
-		      }
-		    }
-		    if (languageTarget.length() < 2) {
+		    String languageTarget = button.getField("lang");
+		    if (languageTarget.equals("none")) {
 		      continue;
 		    }
 		    
@@ -84,15 +81,21 @@ public class AuntRosieRobotServlet extends AbstractRobot {
         
         TextView myDoc = myBlip.getDocument();
         myDoc.delete();
-        
+        /*
         myDoc.append(languageTarget + "\n");
         myDoc.append(doc.getAnnotations().size() + "\n");
 		    for (Annotation a : doc.getAnnotations()) {
 		      myDoc.append(a + "\n");
 		    }
 		    myDoc.append(doc.getText() + "\n");
+		    */
+        
 		    for (Annotation a : annotationsToTranslate) {
-		      String translation = translateText(a.getValue(), languageTarget, doc.getText(a.getRange()));
+		      Range r = a.getRange();
+		      String translation = translateText(
+		          a.getValue(),
+		          languageTarget,
+		          doc.getText(new Range(Math.max(0, r.getStart()), r.getEnd())));
     		  myDoc.append(translation);
 			  }
 		  }
