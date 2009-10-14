@@ -25,8 +25,8 @@ public class AuntRosieRobotServlet extends AbstractRobot {
 
 	private static final long serialVersionUID = -1546080376029476133L;
 
-	private static final String myAddress = "webmaster@appspot.com";
-	private static final String buttonUrl = "http://webmaster.appspot.com/translate-button.xml";
+	private static final String myAddress = "aunt-rosie@appspot.com";
+	private static final String buttonUrl = "http://aunt-rosie.appspot.com/translate-button.xml";
 	
 	@Override
 	public String getRobotName() {
@@ -55,7 +55,7 @@ public class AuntRosieRobotServlet extends AbstractRobot {
 		    }
 		    
 		    String languageTarget = button.getField("lang");
-		    if (languageTarget.equals("none")) {
+		    if (languageTarget == null || languageTarget.equals("none")) {
 		      continue;
 		    }
 		    
