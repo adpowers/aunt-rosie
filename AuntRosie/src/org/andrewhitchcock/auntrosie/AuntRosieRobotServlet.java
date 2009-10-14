@@ -46,8 +46,12 @@ public class AuntRosieRobotServlet extends AbstractRobot {
 		    
 		    TextView doc = blip.getDocument();
 		    
+		    if (doc.getAnnotations("lang").isEmpty()) {
+		      continue;
+		    }
+		    
 		    Gadget button = doc.getGadgetView().getGadget(buttonUrl);
-		    if (button == null && !doc.getAnnotations("lang").isEmpty()) {
+		    if (button == null) {
 		      doc.insert(0, "\n");
 		      doc.insertElement(0, new Gadget(buttonUrl));
 		      doc.insert(0, "\n");
