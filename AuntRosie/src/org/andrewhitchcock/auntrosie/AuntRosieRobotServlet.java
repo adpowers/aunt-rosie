@@ -102,14 +102,16 @@ public class AuntRosieRobotServlet extends AbstractRobot {
 		          doc.getText(new Range(Math.max(0, r.getStart()), r.getEnd())));
     		  myDoc.append(translation);
 			  }
-		  }
+		    myDoc.appendMarkup("<br /><br /><br /><i>Translations powered by <a href=\"http://translate.google.com/#\">Google Translate</a></i>");
+	    }
 		}
 	}
 	
 	private String translateText(String from, String to, String text) {
 	  try {
 	    String encoded = URLEncoder.encode(text, "UTF-8");
-	    URL url = new URI("http://ajax.googleapis.com/ajax/services/language/translate?langpair=" + from + "%7C" + to + "&v=1.0&q=" + encoded).toURL();
+	    String key = "ABQIAAAAe-kCKwcl6Q0CmpfGzUgerhRQ2UqWlTnfxxg_2AxnXE1oQ7HidBQiKHUD7uJx-wEVmjhu1_n1rxbw8g";
+	    URL url = new URI("http://ajax.googleapis.com/ajax/services/language/translate?key=" + key + "&langpair=" + from + "%7C" + to + "&v=1.0&q=" + encoded).toURL();
 	    BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream(), "UTF-8"));
 	    
 	    StringBuilder sb = new StringBuilder();
