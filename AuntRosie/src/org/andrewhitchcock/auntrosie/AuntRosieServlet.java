@@ -9,5 +9,5 @@ public class AuntRosieServlet extends HttpServlet {
 			throws IOException {
 		resp.setContentType("text/plain");
 		resp.getWriter().println("Hello, world");
-	}
+  }
 }

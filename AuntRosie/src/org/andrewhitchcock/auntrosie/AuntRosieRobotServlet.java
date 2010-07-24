@@ -38,39 +38,39 @@ public class AuntRosieRobotServlet extends AbstractRobot {
 		for (Event e : bundle.getEvents()) {
 		  if (e.getType() == EventType.DOCUMENT_CHANGED) {
 		    Blip blip = e.getBlip();
-		    
-		    // Skip blips I created.
-		    if (blip.getCreator().equals(myAddress)) {
-		      continue;
-		    }
-		    
-		    TextView doc = blip.getDocument();
-		    
-		    if (doc.getAnnotations("lang").isEmpty()) {
-		      continue;
-		    }
-		    
-		    Gadget button = doc.getGadgetView().getGadget(buttonUrl);
-		    if (button == null) {
-		      doc.insert(0, "\n");
-		      doc.insertElement(0, new Gadget(buttonUrl));
-		      doc.insert(0, "\n");
-		      continue;
-		    }
-		    
-		    String languageTarget = button.getField("lang");
-		    if (languageTarget == null || languageTarget.equals("none")) {
-		      continue;
-		    }
-		    
-		    List<Annotation> annotationsToTranslate = new ArrayList<Annotation>();
-		    for (Annotation langAnnotations : doc.getAnnotations("lang")) {
-		      // Don't try to translate a language to itself
-		      if (! (langAnnotations.getValue().equals(languageTarget)
-		          || langAnnotations.getValue().equals("unknown"))) {
-		        annotationsToTranslate.add(langAnnotations);
-		      }
-		    }
+	      
+        // Skip blips I created.
+        if (blip.getCreator().equals(myAddress)) {
+          continue;
+        }
+        
+        TextView doc = blip.getDocument();
+        
+        if (doc.getAnnotations("lang").isEmpty()) {
+          continue;
+        }
+        
+        Gadget button = doc.getGadgetView().getGadget(buttonUrl);
+        if (button == null) {
+          doc.insert(0, "\n");
+          doc.insertElement(0, new Gadget(buttonUrl));
+          doc.insert(0, "\n");
+          continue;
+        }
+        
+        String languageTarget = button.getField("lang");
+        if (languageTarget == null || languageTarget.equals("none")) {
+          continue;
+        }
+        
+        List<Annotation> annotationsToTranslate = new ArrayList<Annotation>();
+        for (Annotation langAnnotations : doc.getAnnotations("lang")) {
+          // Don't try to translate a language to itself
+          if (! (langAnnotations.getValue().equals(languageTarget)
+              || langAnnotations.getValue().equals("unknown"))) {
+            annotationsToTranslate.add(langAnnotations);
+          }
+        }
 
         Blip myBlip = null;
         for (Blip child : blip.getChildren()) {
@@ -88,53 +88,53 @@ public class AuntRosieRobotServlet extends AbstractRobot {
         /*
         myDoc.append(languageTarget + "\n");
         myDoc.append(doc.getAnnotations().size() + "\n");
-		    for (Annotation a : doc.getAnnotations()) {
-		      myDoc.append(a + "\n");
-		    }
-		    myDoc.append(doc.getText() + "\n");
-		    */
+        for (Annotation a : doc.getAnnotations()) {
+          myDoc.append(a + "\n");
+        }
+        myDoc.append(doc.getText() + "\n");
+        */
         
-		    for (Annotation a : annotationsToTranslate) {
-		      Range r = a.getRange();
-		      String translation = translateText(
-		          a.getValue(),
-		          languageTarget,
-		          doc.getText(new Range(Math.max(0, r.getStart()), r.getEnd())));
-    		  myDoc.append(translation);
-			  }
-		    myDoc.appendMarkup("<br /><br /><br /><i>Translations powered by <a href=\"http://translate.google.com/#\">Google Translate</a></i>");
-	    }
-		}
-	}
-	
-	private String translateText(String from, String to, String text) {
-	  try {
-	    String encoded = URLEncoder.encode(text, "UTF-8");
-	    String key = "ABQIAAAAe-kCKwcl6Q0CmpfGzUgerhRQ2UqWlTnfxxg_2AxnXE1oQ7HidBQiKHUD7uJx-wEVmjhu1_n1rxbw8g";
-	    URL url = new URI("http://ajax.googleapis.com/ajax/services/language/translate?key=" + key + "&langpair=" + from + "%7C" + to + "&v=1.0&q=" + encoded).toURL();
-	    BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream(), "UTF-8"));
-	    
-	    StringBuilder sb = new StringBuilder();
-	    String line;
-	    while ((line = reader.readLine()) != null) {
-	      sb.append(line);
-	    }
-	    
-	    JSONObject json = new JSONObject(new JSONTokener(sb.toString()));
-	    if (json.isNull("responseData")) {
-	      return json.getString("responseDetails");
-	    } else {
-	      return json.getJSONObject("responseData").getString("translatedText");
-	    }
-	  } catch (Exception e) {
-	    return e.toString();
-	  }
-	}
+        for (Annotation a : annotationsToTranslate) {
+          Range r = a.getRange();
+          String translation = translateText(
+              a.getValue(),
+              languageTarget,
+              doc.getText(new Range(Math.max(0, r.getStart()), r.getEnd())));
+          myDoc.append(translation);
+        }
+        myDoc.appendMarkup("<br /><br /><br /><i>Translations powered by <a href=\"http://translate.google.com/#\">Google Translate</a></i>");
+      }
+    }
+  }
+  
+  private String translateText(String from, String to, String text) {
+    try {
+      String encoded = URLEncoder.encode(text, "UTF-8");
+      String key = "ABQIAAAAe-kCKwcl6Q0CmpfGzUgerhRQ2UqWlTnfxxg_2AxnXE1oQ7HidBQiKHUD7uJx-wEVmjhu1_n1rxbw8g";
+      URL url = new URI("http://ajax.googleapis.com/ajax/services/language/translate?key=" + key + "&langpair=" + from + "%7C" + to + "&v=1.0&q=" + encoded).toURL();
+      BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream(), "UTF-8"));
+      
+      StringBuilder sb = new StringBuilder();
+      String line;
+      while ((line = reader.readLine()) != null) {
+        sb.append(line);
+      }
+      
+      JSONObject json = new JSONObject(new JSONTokener(sb.toString()));
+      if (json.isNull("responseData")) {
+        return json.getString("responseDetails");
+      } else {
+        return json.getJSONObject("responseData").getString("translatedText");
+      }
+    } catch (Exception e) {
+      return e.toString();
+    }
+  }
 
-	@Override
-	public void registerForEvents() {
-		// TODO Auto-generated method stub
+  @Override
+  public void registerForEvents() {
+    // TODO Auto-generated method stub
 
-	}
+  }
 
 }
