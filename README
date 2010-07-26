@@ -1,0 +1,7 @@
+Aunt Rosie is a Google Wave robot modeled after the official Rosy Etta bot. The bot
+runs against the V2 Google Wave API and was written by Andrew Hitchcock. The
+translations are powered by Google's AJAX translation API.
+
+Aunt Rosie is released under an Apache 2 license.
+
+You can try out the robot by adding aunt-rosie@appspot.com to a wave.
